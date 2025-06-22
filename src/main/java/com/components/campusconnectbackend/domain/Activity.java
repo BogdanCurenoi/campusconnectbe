@@ -59,6 +59,10 @@ public class Activity {
     @Column(name = "AC_PERSON_UID")
     private String personUid;
 
+    // NEW FIELD: Active status
+    @Column(name = "AC_ACTIVE")
+    private Boolean active;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AC_DEPARTMENT_ID", referencedColumnName = "CD_ID", insertable = false, updatable = false)
     private Department department;

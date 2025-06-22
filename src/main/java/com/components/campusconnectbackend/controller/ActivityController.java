@@ -103,8 +103,30 @@ public class ActivityController {
         byte[] photo = activityService.getActivityPhoto(id);
         if (photo != null) {
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.IMAGE_JPEG); // Adjust based on your photo type
+            headers.setContentType(MediaType.IMAGE_JPEG);
             return new ResponseEntity<>(photo, headers, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Update activity
+    @PutMapping("/{id}")
+    public ResponseEntity<ActivityDTO> updateActivity(@PathVariable Integer id, @RequestBody ActivityDTO activityDTO) {
+        try {
+            ActivityDTO updatedActivity = activityService.updateActivity(id, activityDTO);
+            return new ResponseEntity<>(updatedActivity, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Delete activity
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteActivity(@PathVariable Integer id) {
+        if (activityService.existsById(id)) {
+            activityService.deleteActivity(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -157,65 +179,119 @@ public class ActivityController {
 
     // Get activities by voting eligibility only
     @GetMapping("/voting-eligibility/{votingEligibilityOnly}")
-    public ResponseEntity<List<ActivityDTO>> getActivitiesByVotingEligibilityOnly(
-            @PathVariable Boolean votingEligibilityOnly) {
+    public ResponseEntity<List<ActivityDTO>> getActivitiesByVotingEligibilityOnly(@PathVariable Boolean votingEligibilityOnly) {
         List<ActivityDTO> activities = activityService.getActivitiesByVotingEligibilityOnly(votingEligibilityOnly);
         return new ResponseEntity<>(activities, HttpStatus.OK);
     }
 
     // Get activities by voting progress
     @GetMapping("/voting-progress/{votingProgress}")
-    public ResponseEntity<List<ActivityDTO>> getActivitiesByVotingProgress(
-            @PathVariable Boolean votingProgress) {
+    public ResponseEntity<List<ActivityDTO>> getActivitiesByVotingProgress(@PathVariable Boolean votingProgress) {
         List<ActivityDTO> activities = activityService.getActivitiesByVotingProgress(votingProgress);
         return new ResponseEntity<>(activities, HttpStatus.OK);
     }
 
-    // Update activity
-    @PutMapping("/{id}")
-    public ResponseEntity<ActivityDTO> updateActivity(@PathVariable Integer id, @RequestBody ActivityDTO activityDTO) {
+    // NEW ENDPOINTS: Activity status management
+
+    // Get activities by active status
+    @GetMapping("/active/{active}")
+    public ResponseEntity<List<ActivityDTO>> getActivitiesByActive(@PathVariable Boolean active) {
+        List<ActivityDTO> activities = activityService.getActivitiesByActive(active);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active activities ordered by date
+    @GetMapping("/active/ordered")
+    public ResponseEntity<List<ActivityDTO>> getActiveActivitiesOrderedByDate(
+            @RequestParam(defaultValue = "false") boolean ascending) {
+        List<ActivityDTO> activities = activityService.getActiveActivitiesOrderedByDate(ascending);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active activities by department
+    @GetMapping("/active/department/{departmentId}")
+    public ResponseEntity<List<ActivityDTO>> getActiveActivitiesByDepartment(@PathVariable Integer departmentId) {
+        List<ActivityDTO> activities = activityService.getActiveActivitiesByDepartment(departmentId);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active activities by person
+    @GetMapping("/active/person/{personUid}")
+    public ResponseEntity<List<ActivityDTO>> getActiveActivitiesByPerson(@PathVariable String personUid) {
+        List<ActivityDTO> activities = activityService.getActiveActivitiesByPerson(personUid);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active activities by date
+    @GetMapping("/active/date/{date}")
+    public ResponseEntity<List<ActivityDTO>> getActiveActivitiesByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<ActivityDTO> activities = activityService.getActiveActivitiesByDate(date);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active activities between dates
+    @GetMapping("/active/date-range")
+    public ResponseEntity<List<ActivityDTO>> getActiveActivitiesBetweenDates(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<ActivityDTO> activities = activityService.getActiveActivitiesBetweenDates(startDate, endDate);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active activities by obligatory status
+    @GetMapping("/active/obligatory/{obligatory}")
+    public ResponseEntity<List<ActivityDTO>> getActiveActivitiesByObligatory(@PathVariable Boolean obligatory) {
+        List<ActivityDTO> activities = activityService.getActiveActivitiesByObligatory(obligatory);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active activities by voting eligibility only
+    @GetMapping("/active/voting-eligibility/{votingEligibilityOnly}")
+    public ResponseEntity<List<ActivityDTO>> getActiveActivitiesByVotingEligibilityOnly(@PathVariable Boolean votingEligibilityOnly) {
+        List<ActivityDTO> activities = activityService.getActiveActivitiesByVotingEligibilityOnly(votingEligibilityOnly);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active activities by voting progress
+    @GetMapping("/active/voting-progress/{votingProgress}")
+    public ResponseEntity<List<ActivityDTO>> getActiveActivitiesByVotingProgress(@PathVariable Boolean votingProgress) {
+        List<ActivityDTO> activities = activityService.getActiveActivitiesByVotingProgress(votingProgress);
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active upcoming activities
+    @GetMapping("/active/upcoming")
+    public ResponseEntity<List<ActivityDTO>> getActiveUpcomingActivities() {
+        List<ActivityDTO> activities = activityService.getActiveUpcomingActivities();
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Get active past activities
+    @GetMapping("/active/past")
+    public ResponseEntity<List<ActivityDTO>> getActivePastActivities() {
+        List<ActivityDTO> activities = activityService.getActivePastActivities();
+        return new ResponseEntity<>(activities, HttpStatus.OK);
+    }
+
+    // Activate an activity
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<ActivityDTO> activateActivity(@PathVariable Integer id) {
         try {
-            ActivityDTO updatedActivity = activityService.updateActivity(id, activityDTO);
-            return new ResponseEntity<>(updatedActivity, HttpStatus.OK);
+            ActivityDTO activatedActivity = activityService.activateActivity(id);
+            return new ResponseEntity<>(activatedActivity, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    // Update activity with photo
-    @PutMapping("/{id}/with-photo")
-    public ResponseEntity<ActivityDTO> updateActivityWithPhoto(
-            @PathVariable Integer id,
-            @RequestParam("name") String name,
-            @RequestParam("description") String description,
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam("hours") Integer hours,
-            @RequestParam(value = "votingEligibilityOnly", required = false) Boolean votingEligibilityOnly,
-            @RequestParam(value = "votingProgress", required = false) Boolean votingProgress,
-            @RequestParam(value = "personNumber", required = false) Integer personNumber,
-            @RequestParam(value = "obligatory", required = false) Boolean obligatory,
-            @RequestParam(value = "cost", required = false) Integer cost,
-            @RequestParam(value = "costBudget", required = false) String costBudget,
-            @RequestParam(value = "departmentId", required = false) Integer departmentId,
-            @RequestParam(value = "personUid", required = false) String personUid,
-            @RequestParam(value = "photo", required = false) MultipartFile photo) {
+    // Deactivate an activity
+    @PutMapping("/{id}/deactivate")
+    public ResponseEntity<ActivityDTO> deactivateActivity(@PathVariable Integer id) {
         try {
-            ActivityDTO updatedActivity = activityService.updateActivityWithPhoto(
-                    id, name, description, date, hours, votingEligibilityOnly, votingProgress,
-                    personNumber, obligatory, cost, costBudget, departmentId, personUid, photo);
-            return new ResponseEntity<>(updatedActivity, HttpStatus.OK);
-        } catch (RuntimeException | IOException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    // Delete activity
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteActivity(@PathVariable Integer id) {
-        if (activityService.existsById(id)) {
-            activityService.deleteActivity(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
+            ActivityDTO deactivatedActivity = activityService.deactivateActivity(id);
+            return new ResponseEntity<>(deactivatedActivity, HttpStatus.OK);
+        } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }

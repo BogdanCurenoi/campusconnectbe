@@ -24,6 +24,7 @@ public class ActivityDTO {
     private String costBudget;
     private Integer departmentId;
     private String personUid;
+    private Boolean active; // NEW FIELD: Active status
     private String departmentName; // For convenience
     private String personName; // For convenience
 
@@ -31,7 +32,7 @@ public class ActivityDTO {
     public ActivityDTO(Integer id, String name, String description, LocalDate date, Integer hours,
                        Boolean votingEligibilityOnly, Boolean votingProgress, Integer personNumber,
                        Boolean obligatory, Integer cost, String costBudget, Integer departmentId,
-                       String personUid, String departmentName, String personName) {
+                       String personUid, Boolean active, String departmentName, String personName) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -45,6 +46,7 @@ public class ActivityDTO {
         this.costBudget = costBudget;
         this.departmentId = departmentId;
         this.personUid = personUid;
+        this.active = active;
         this.departmentName = departmentName;
         this.personName = personName;
     }

@@ -29,6 +29,10 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public ActivityDTO createActivity(ActivityDTO activityDTO) {
         Activity activity = convertToEntity(activityDTO);
+        // Set default active status to true for new activities
+        if (activity.getActive() == null) {
+            activity.setActive(true);
+        }
         Activity savedActivity = activityRepository.save(activity);
         return convertToDTO(savedActivity);
     }
@@ -51,6 +55,8 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setCostBudget(costBudget);
         activity.setDepartmentId(departmentId);
         activity.setPersonUid(personUid);
+        // Set default active status to true for new activities
+        activity.setActive(true);
 
         if (photo != null && !photo.isEmpty()) {
             activity.setPhoto(photo.getBytes());
@@ -187,50 +193,15 @@ public class ActivityServiceImpl implements ActivityService {
 
             // Get existing activity to preserve or clear photo based on DTO
             activityRepository.findById(id).ifPresent(existingActivity -> {
-                // If photo is explicitly null in DTO, remove it (user deleted it)
-                if (activityDTO.getPhoto() == null) {
-                    activity.setPhoto(null);
-                } else if (activityDTO.getPhoto().length == 0) {
-                    // Empty byte array also means remove photo
-                    activity.setPhoto(null);
-                } else {
-                    // Photo has content, use it
-                    activity.setPhoto(activityDTO.getPhoto());
+                // If the DTO doesn't include photo data, preserve the existing photo
+                if (activityDTO.getPhoto() == null && existingActivity.getPhoto() != null) {
+                    activity.setPhoto(existingActivity.getPhoto());
+                }
+                // If the DTO doesn't include active status, preserve the existing active status
+                if (activityDTO.getActive() == null) {
+                    activity.setActive(existingActivity.getActive());
                 }
             });
-
-            Activity updatedActivity = activityRepository.save(activity);
-            return convertToDTO(updatedActivity);
-        } else {
-            throw new RuntimeException("Activity with ID: " + id + " not found");
-        }
-    }
-
-    @Override
-    public ActivityDTO updateActivityWithPhoto(Integer id, String name, String description, LocalDate date, Integer hours,
-                                               Boolean votingEligibilityOnly, Boolean votingProgress, Integer personNumber,
-                                               Boolean obligatory, Integer cost, String costBudget, Integer departmentId,
-                                               String personUid, MultipartFile photo) throws IOException {
-        if (activityRepository.existsById(id)) {
-            Activity activity = activityRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Activity with ID: " + id + " not found"));
-
-            activity.setName(name);
-            activity.setDescription(description);
-            activity.setDate(date);
-            activity.setHours(hours);
-            activity.setVotingEligibilityOnly(votingEligibilityOnly != null ? votingEligibilityOnly : false);
-            activity.setVotingProgress(votingProgress != null ? votingProgress : false);
-            activity.setPersonNumber(personNumber);
-            activity.setObligatory(obligatory != null ? obligatory : false);
-            activity.setCost(cost);
-            activity.setCostBudget(costBudget);
-            activity.setDepartmentId(departmentId);
-            activity.setPersonUid(personUid);
-
-            if (photo != null && !photo.isEmpty()) {
-                activity.setPhoto(photo.getBytes());
-            }
 
             Activity updatedActivity = activityRepository.save(activity);
             return convertToDTO(updatedActivity);
@@ -248,6 +219,125 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional(readOnly = true)
     public boolean existsById(Integer id) {
         return activityRepository.existsById(id);
+    }
+
+    // NEW METHODS: Activity status management
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActivitiesByActive(Boolean active) {
+        return activityRepository.findByActive(active).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveActivitiesOrderedByDate(boolean ascending) {
+        List<Activity> activities;
+        if (ascending) {
+            activities = activityRepository.findByActiveOrderByDateAsc(true);
+        } else {
+            activities = activityRepository.findByActiveOrderByDateDesc(true);
+        }
+        return activities.stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveActivitiesByDepartment(Integer departmentId) {
+        return activityRepository.findByActiveAndDepartmentId(true, departmentId).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveActivitiesByPerson(String personUid) {
+        return activityRepository.findByActiveAndPersonUid(true, personUid).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveActivitiesByDate(LocalDate date) {
+        return activityRepository.findByActiveAndDate(true, date).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveActivitiesBetweenDates(LocalDate startDate, LocalDate endDate) {
+        return activityRepository.findByActiveAndDateBetween(true, startDate, endDate).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveActivitiesByObligatory(Boolean obligatory) {
+        return activityRepository.findByActiveAndObligatory(true, obligatory).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveActivitiesByVotingEligibilityOnly(Boolean votingEligibilityOnly) {
+        return activityRepository.findByActiveAndVotingEligibilityOnly(true, votingEligibilityOnly).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveActivitiesByVotingProgress(Boolean votingProgress) {
+        return activityRepository.findByActiveAndVotingProgress(true, votingProgress).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActiveUpcomingActivities() {
+        LocalDate today = LocalDate.now();
+        return activityRepository.findByActiveAndDateAfterOrderByDateAsc(true, today).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ActivityDTO> getActivePastActivities() {
+        LocalDate today = LocalDate.now();
+        return activityRepository.findByActiveAndDateBeforeOrderByDateDesc(true, today).stream()
+                .map(this::convertToDTOWithoutPhoto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ActivityDTO activateActivity(Integer id) {
+        return activityRepository.findById(id)
+                .map(activity -> {
+                    activity.setActive(true);
+                    Activity updatedActivity = activityRepository.save(activity);
+                    return convertToDTO(updatedActivity);
+                })
+                .orElseThrow(() -> new RuntimeException("Activity with ID: " + id + " not found"));
+    }
+
+    @Override
+    public ActivityDTO deactivateActivity(Integer id) {
+        return activityRepository.findById(id)
+                .map(activity -> {
+                    activity.setActive(false);
+                    Activity updatedActivity = activityRepository.save(activity);
+                    return convertToDTO(updatedActivity);
+                })
+                .orElseThrow(() -> new RuntimeException("Activity with ID: " + id + " not found"));
     }
 
     // Helper methods to convert between entity and DTO
@@ -277,6 +367,7 @@ public class ActivityServiceImpl implements ActivityService {
                 activity.getCostBudget(),
                 activity.getDepartmentId(),
                 activity.getPersonUid(),
+                activity.getActive(), // NEW FIELD
                 departmentName,
                 personName
         );
@@ -307,6 +398,7 @@ public class ActivityServiceImpl implements ActivityService {
                 activity.getCostBudget(),
                 activity.getDepartmentId(),
                 activity.getPersonUid(),
+                activity.getActive(), // NEW FIELD
                 departmentName,
                 personName
         );
@@ -327,6 +419,7 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setCostBudget(activityDTO.getCostBudget());
         activity.setDepartmentId(activityDTO.getDepartmentId());
         activity.setPersonUid(activityDTO.getPersonUid());
+        activity.setActive(activityDTO.getActive() != null ? activityDTO.getActive() : true); // NEW FIELD - default to true
 
         // Handle photo data exactly like PersonServiceImpl does
         if (activityDTO.getPhoto() != null) {
