@@ -86,4 +86,88 @@ public class PersonController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    // NEW ENDPOINTS FOR CP_HOURS FUNCTIONALITY
+
+    // Get persons by exact CP_HOURS
+    @GetMapping("/cp-hours/{hours}")
+    public ResponseEntity<List<PersonDTO>> getPersonsByCpHours(@PathVariable Integer hours) {
+        List<PersonDTO> persons = personService.getPersonsByCpHours(hours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons by CP_HOURS range
+    @GetMapping("/cp-hours/range")
+    public ResponseEntity<List<PersonDTO>> getPersonsByCpHoursRange(
+            @RequestParam Integer minHours,
+            @RequestParam Integer maxHours) {
+        List<PersonDTO> persons = personService.getPersonsByCpHoursRange(minHours, maxHours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons with CP_HOURS greater than specified value
+    @GetMapping("/cp-hours/greater-than/{hours}")
+    public ResponseEntity<List<PersonDTO>> getPersonsByCpHoursGreaterThan(@PathVariable Integer hours) {
+        List<PersonDTO> persons = personService.getPersonsByCpHoursGreaterThan(hours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons with CP_HOURS less than specified value
+    @GetMapping("/cp-hours/less-than/{hours}")
+    public ResponseEntity<List<PersonDTO>> getPersonsByCpHoursLessThan(@PathVariable Integer hours) {
+        List<PersonDTO> persons = personService.getPersonsByCpHoursLessThan(hours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons with CP_HOURS greater than or equal to specified value
+    @GetMapping("/cp-hours/greater-than-equal/{hours}")
+    public ResponseEntity<List<PersonDTO>> getPersonsByCpHoursGreaterThanEqual(@PathVariable Integer hours) {
+        List<PersonDTO> persons = personService.getPersonsByCpHoursGreaterThanEqual(hours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons with CP_HOURS less than or equal to specified value
+    @GetMapping("/cp-hours/less-than-equal/{hours}")
+    public ResponseEntity<List<PersonDTO>> getPersonsByCpHoursLessThanEqual(@PathVariable Integer hours) {
+        List<PersonDTO> persons = personService.getPersonsByCpHoursLessThanEqual(hours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons by department and exact CP_HOURS
+    @GetMapping("/department/{departmentId}/cp-hours/{hours}")
+    public ResponseEntity<List<PersonDTO>> getPersonsByDepartmentAndCpHours(
+            @PathVariable Integer departmentId,
+            @PathVariable Integer hours) {
+        List<PersonDTO> persons = personService.getPersonsByDepartmentAndCpHours(departmentId, hours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons by college and exact CP_HOURS
+    @GetMapping("/college/{collegeId}/cp-hours/{hours}")
+    public ResponseEntity<List<PersonDTO>> getPersonsByCollegeAndCpHours(
+            @PathVariable Integer collegeId,
+            @PathVariable Integer hours) {
+        List<PersonDTO> persons = personService.getPersonsByCollegeAndCpHours(collegeId, hours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons by department and CP_HOURS range
+    @GetMapping("/department/{departmentId}/cp-hours/range")
+    public ResponseEntity<List<PersonDTO>> getPersonsByDepartmentAndCpHoursRange(
+            @PathVariable Integer departmentId,
+            @RequestParam Integer minHours,
+            @RequestParam Integer maxHours) {
+        List<PersonDTO> persons = personService.getPersonsByDepartmentAndCpHoursRange(departmentId, minHours, maxHours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
+
+    // Get persons by college and CP_HOURS range
+    @GetMapping("/college/{collegeId}/cp-hours/range")
+    public ResponseEntity<List<PersonDTO>> getPersonsByCollegeAndCpHoursRange(
+            @PathVariable Integer collegeId,
+            @RequestParam Integer minHours,
+            @RequestParam Integer maxHours) {
+        List<PersonDTO> persons = personService.getPersonsByCollegeAndCpHoursRange(collegeId, minHours, maxHours);
+        return new ResponseEntity<>(persons, HttpStatus.OK);
+    }
 }

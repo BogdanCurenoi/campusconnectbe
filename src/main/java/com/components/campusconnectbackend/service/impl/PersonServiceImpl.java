@@ -111,6 +111,7 @@ public class PersonServiceImpl implements PersonService {
                 person.getDepartmentId(),
                 person.getCollegeId(),
                 person.getProfilePicture(),
+                person.getCpHours(),
                 departmentName,
                 collegeName
         );
@@ -125,6 +126,88 @@ public class PersonServiceImpl implements PersonService {
         person.setDepartmentId(personDTO.getDepartmentId());
         person.setCollegeId(personDTO.getCollegeId());
         person.setProfilePicture(personDTO.getProfilePicture());
+        person.setCpHours(personDTO.getCpHours());
         return person;
+    }
+
+    // New methods for CP_HOURS functionality
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByCpHours(Integer cpHours) {
+        return personRepository.findByCpHours(cpHours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByCpHoursRange(Integer minHours, Integer maxHours) {
+        return personRepository.findByCpHoursBetween(minHours, maxHours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByCpHoursGreaterThan(Integer hours) {
+        return personRepository.findByCpHoursGreaterThan(hours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByCpHoursLessThan(Integer hours) {
+        return personRepository.findByCpHoursLessThan(hours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByCpHoursGreaterThanEqual(Integer hours) {
+        return personRepository.findByCpHoursGreaterThanEqual(hours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByCpHoursLessThanEqual(Integer hours) {
+        return personRepository.findByCpHoursLessThanEqual(hours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByDepartmentAndCpHours(Integer departmentId, Integer cpHours) {
+        return personRepository.findByDepartmentIdAndCpHours(departmentId, cpHours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByCollegeAndCpHours(Integer collegeId, Integer cpHours) {
+        return personRepository.findByCollegeIdAndCpHours(collegeId, cpHours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByDepartmentAndCpHoursRange(Integer departmentId, Integer minHours, Integer maxHours) {
+        return personRepository.findByDepartmentIdAndCpHoursBetween(departmentId, minHours, maxHours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonDTO> getPersonsByCollegeAndCpHoursRange(Integer collegeId, Integer minHours, Integer maxHours) {
+        return personRepository.findByCollegeIdAndCpHoursBetween(collegeId, minHours, maxHours).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }

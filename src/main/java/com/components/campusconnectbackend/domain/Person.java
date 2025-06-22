@@ -34,6 +34,9 @@ public class Person {
     @Column(name = "CP_PROFILE_PICTURE")
     private byte[] profilePicture;
 
+    @Column(name = "CP_HOURS")
+    private Integer cpHours;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CP_DEPARTMENT_ID", referencedColumnName = "CD_ID", insertable = false, updatable = false)
     private Department department;
