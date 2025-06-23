@@ -44,4 +44,31 @@ public interface NotificationRepository extends MongoRepository<Notification, St
 
     // Delete notifications older than a specific date
     void deleteByNoCreatedAtBefore(LocalDateTime dateTime);
+
+    // NEW METHODS FOR no_from_guid functionality
+
+    // Find notifications sent by a specific person
+    List<Notification> findByNoFromGuid(String noFromGuid);
+
+    // Find notifications sent by a specific person to a specific recipient
+    List<Notification> findByNoGuidAndNoFromGuid(String noGuid, String noFromGuid);
+
+    // Find notifications sent by a specific person of a specific type
+    List<Notification> findByNoFromGuidAndNoType(String noFromGuid, String noType);
+
+    // Find unread notifications sent by a specific person
+    List<Notification> findByNoFromGuidAndNoReadFalse(String noFromGuid);
+
+    // Count notifications sent by a specific person
+    long countByNoFromGuid(String noFromGuid);
+
+    // Find notifications where noFromGuid is null (system notifications)
+    List<Notification> findByNoFromGuidIsNull();
+
+    // Find notifications where noFromGuid is not null (user-generated notifications)
+    List<Notification> findByNoFromGuidIsNotNull();
+
+    // Custom query to find notifications from a specific sender ordered by creation date
+    @Query(value = "{ 'no_from_guid': ?0 }", sort = "{ 'no_created_at': -1 }")
+    List<Notification> findByNoFromGuidOrderByNoCreatedAtDesc(String noFromGuid);
 }

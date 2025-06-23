@@ -39,4 +39,27 @@ public interface NotificationService {
 
     // Clean up old notifications (older than specified days)
     void cleanupOldNotifications(int daysOld);
+
+    // NEW METHODS FOR no_from_guid functionality
+
+    // Get notifications sent by a specific person
+    List<NotificationDTO> getNotificationsByFromGuid(String fromGuid);
+
+    // Get notifications sent by a specific person to a specific recipient
+    List<NotificationDTO> getNotificationsByPersonGuidAndFromGuid(String personGuid, String fromGuid);
+
+    // Get notifications sent by a specific person of a specific type
+    List<NotificationDTO> getNotificationsByFromGuidAndType(String fromGuid, String type);
+
+    // Get unread notifications sent by a specific person
+    List<NotificationDTO> getUnreadNotificationsByFromGuid(String fromGuid);
+
+    // Get count of notifications sent by a specific person
+    long getNotificationCountByFromGuid(String fromGuid);
+
+    // Get system notifications (where noFromGuid is null)
+    List<NotificationDTO> getSystemNotifications();
+
+    // Get user-generated notifications (where noFromGuid is not null)
+    List<NotificationDTO> getUserGeneratedNotifications();
 }

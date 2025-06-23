@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class NotificationDTO {
     private String id;
     private String noGuid;
+    private String noFromGuid; // New optional field
     private String noMessage;
     private String noType;
     private Boolean noRead;
@@ -20,6 +21,14 @@ public class NotificationDTO {
     // Constructor for creating new notifications (without id, read status, and timestamp)
     public NotificationDTO(String noGuid, String noMessage, String noType) {
         this.noGuid = noGuid;
+        this.noMessage = noMessage;
+        this.noType = noType;
+    }
+
+    // Constructor for creating new notifications with fromGuid
+    public NotificationDTO(String noGuid, String noFromGuid, String noMessage, String noType) {
+        this.noGuid = noGuid;
+        this.noFromGuid = noFromGuid;
         this.noMessage = noMessage;
         this.noType = noType;
     }

@@ -24,11 +24,23 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationDTO createNotification(NotificationDTO notificationDTO) {
-        Notification notification = new Notification(
-                notificationDTO.getNoGuid(),
-                notificationDTO.getNoMessage(),
-                notificationDTO.getNoType()
-        );
+        Notification notification;
+
+        // Create notification with or without noFromGuid
+        if (notificationDTO.getNoFromGuid() != null) {
+            notification = new Notification(
+                    notificationDTO.getNoGuid(),
+                    notificationDTO.getNoFromGuid(),
+                    notificationDTO.getNoMessage(),
+                    notificationDTO.getNoType()
+            );
+        } else {
+            notification = new Notification(
+                    notificationDTO.getNoGuid(),
+                    notificationDTO.getNoMessage(),
+                    notificationDTO.getNoType()
+            );
+        }
 
         Notification savedNotification = notificationRepository.save(notification);
         return convertToDTO(savedNotification);
@@ -116,11 +128,67 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.deleteByNoCreatedAtBefore(cutoffDate);
     }
 
+    // NEW METHODS FOR no_from_guid functionality
+
+    @Override
+    public List<NotificationDTO> getNotificationsByFromGuid(String fromGuid) {
+        List<Notification> notifications = notificationRepository.findByNoFromGuidOrderByNoCreatedAtDesc(fromGuid);
+        return notifications.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NotificationDTO> getNotificationsByPersonGuidAndFromGuid(String personGuid, String fromGuid) {
+        List<Notification> notifications = notificationRepository.findByNoGuidAndNoFromGuid(personGuid, fromGuid);
+        return notifications.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NotificationDTO> getNotificationsByFromGuidAndType(String fromGuid, String type) {
+        List<Notification> notifications = notificationRepository.findByNoFromGuidAndNoType(fromGuid, type);
+        return notifications.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NotificationDTO> getUnreadNotificationsByFromGuid(String fromGuid) {
+        List<Notification> notifications = notificationRepository.findByNoFromGuidAndNoReadFalse(fromGuid);
+        return notifications.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long getNotificationCountByFromGuid(String fromGuid) {
+        return notificationRepository.countByNoFromGuid(fromGuid);
+    }
+
+    @Override
+    public List<NotificationDTO> getSystemNotifications() {
+        List<Notification> notifications = notificationRepository.findByNoFromGuidIsNull();
+        return notifications.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NotificationDTO> getUserGeneratedNotifications() {
+        List<Notification> notifications = notificationRepository.findByNoFromGuidIsNotNull();
+        return notifications.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     // Helper method to convert Notification entity to DTO
     private NotificationDTO convertToDTO(Notification notification) {
         return new NotificationDTO(
                 notification.getId(),
                 notification.getNoGuid(),
+                notification.getNoFromGuid(), // Include the new field
                 notification.getNoMessage(),
                 notification.getNoType(),
                 notification.getNoRead(),

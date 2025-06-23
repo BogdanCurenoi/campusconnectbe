@@ -80,8 +80,7 @@ public class NotificationController {
     // Get notifications for a person by type
     @GetMapping("/person/{personGuid}/type/{type}")
     public ResponseEntity<List<NotificationDTO>> getNotificationsByPersonAndType(
-            @PathVariable String personGuid,
-            @PathVariable String type) {
+            @PathVariable String personGuid, @PathVariable String type) {
         try {
             List<NotificationDTO> notifications = notificationService.getNotificationsByPersonGuidAndType(personGuid, type);
             return new ResponseEntity<>(notifications, HttpStatus.OK);
@@ -95,11 +94,9 @@ public class NotificationController {
     public ResponseEntity<NotificationDTO> markNotificationAsRead(@PathVariable String notificationId) {
         try {
             Optional<NotificationDTO> updatedNotification = notificationService.markNotificationAsRead(notificationId);
-            if (updatedNotification.isPresent()) {
-                return new ResponseEntity<>(updatedNotification.get(), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
+            return updatedNotification
+                    .map(notification -> new ResponseEntity<>(notification, HttpStatus.OK))
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -121,11 +118,7 @@ public class NotificationController {
     public ResponseEntity<Void> deleteNotification(@PathVariable String notificationId) {
         try {
             boolean deleted = notificationService.deleteNotification(notificationId);
-            if (deleted) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
+            return deleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -142,7 +135,7 @@ public class NotificationController {
         }
     }
 
-    // Admin endpoint: cleanup old notifications
+    // Admin: cleanup old notifications
     @DeleteMapping("/cleanup/{daysOld}")
     public ResponseEntity<Void> cleanupOldNotifications(@PathVariable int daysOld) {
         try {
@@ -153,19 +146,121 @@ public class NotificationController {
         }
     }
 
-    @GetMapping("/test-notification")
+    // NEW ENDPOINTS FOR no_from_guid functionality
+
+    // Get notifications sent by a specific person
+    @GetMapping("/from/{fromGuid}")
+    public ResponseEntity<List<NotificationDTO>> getNotificationsByFromGuid(@PathVariable String fromGuid) {
+        try {
+            List<NotificationDTO> notifications = notificationService.getNotificationsByFromGuid(fromGuid);
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get notifications sent by a specific person to a specific recipient
+    @GetMapping("/person/{personGuid}/from/{fromGuid}")
+    public ResponseEntity<List<NotificationDTO>> getNotificationsByPersonAndFromGuid(
+            @PathVariable String personGuid, @PathVariable String fromGuid) {
+        try {
+            List<NotificationDTO> notifications = notificationService.getNotificationsByPersonGuidAndFromGuid(personGuid, fromGuid);
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get notifications sent by a specific person of a specific type
+    @GetMapping("/from/{fromGuid}/type/{type}")
+    public ResponseEntity<List<NotificationDTO>> getNotificationsByFromGuidAndType(
+            @PathVariable String fromGuid, @PathVariable String type) {
+        try {
+            List<NotificationDTO> notifications = notificationService.getNotificationsByFromGuidAndType(fromGuid, type);
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get unread notifications sent by a specific person
+    @GetMapping("/from/{fromGuid}/unread")
+    public ResponseEntity<List<NotificationDTO>> getUnreadNotificationsByFromGuid(@PathVariable String fromGuid) {
+        try {
+            List<NotificationDTO> notifications = notificationService.getUnreadNotificationsByFromGuid(fromGuid);
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get count of notifications sent by a specific person
+    @GetMapping("/from/{fromGuid}/count")
+    public ResponseEntity<Long> getNotificationCountByFromGuid(@PathVariable String fromGuid) {
+        try {
+            long count = notificationService.getNotificationCountByFromGuid(fromGuid);
+            return new ResponseEntity<>(count, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get system notifications (where noFromGuid is null)
+    @GetMapping("/system")
+    public ResponseEntity<List<NotificationDTO>> getSystemNotifications() {
+        try {
+            List<NotificationDTO> notifications = notificationService.getSystemNotifications();
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Get user-generated notifications (where noFromGuid is not null)
+    @GetMapping("/user-generated")
+    public ResponseEntity<List<NotificationDTO>> getUserGeneratedNotifications() {
+        try {
+            List<NotificationDTO> notifications = notificationService.getUserGeneratedNotifications();
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // Test endpoint to create sample notifications
+    @GetMapping("/test")
     public ResponseEntity<String> testNotification() {
         try {
-            NotificationDTO testNotification = new NotificationDTO(
-                    "test-user-123",
-                    "This is a test notification",
+            // Create a system notification (no sender)
+            NotificationDTO systemNotification = new NotificationDTO(
+                    "test-user-guid",
+                    null, // No sender - system notification
+                    "This is a test system notification",
+                    "system"
+            );
+            notificationService.createNotification(systemNotification);
+
+            // Create a user notification (with sender)
+            NotificationDTO userNotification = new NotificationDTO(
+                    "test-user-guid",
+                    "sender-user-guid", // From another user
+                    "This is a test notification from another user",
                     "test_type"
             );
+            notificationService.createNotification(userNotification);
 
-            NotificationDTO created = notificationService.createNotification(testNotification);
-            return ResponseEntity.ok("Notification created successfully with ID: " + created.getId());
+            // Create an activity application notification
+            NotificationDTO activityNotification = new NotificationDTO(
+                    "test-user-guid",
+                    "organizer-user-guid",
+                    "Someone applied for your activity",
+                    "activity_application"
+            );
+            notificationService.createNotification(activityNotification);
+
+            return new ResponseEntity<>("Test notifications created successfully with no_from_guid field!", HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+            return new ResponseEntity<>("Failed to create test notifications: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
