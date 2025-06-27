@@ -184,6 +184,7 @@ public class ActivityPersonServiceImpl implements ActivityPersonService {
                 activity.getId(),
                 activity.getName(),
                 activity.getDescription(),
+                activity.getDate(),
                 activityPerson.getAttended()
         );
     }
