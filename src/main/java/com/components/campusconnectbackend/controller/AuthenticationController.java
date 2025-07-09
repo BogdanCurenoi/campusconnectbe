@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // For development - restrict this in production
+@CrossOrigin(origins = "*")
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
